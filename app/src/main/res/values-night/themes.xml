@@ -1,0 +1,4 @@
+<resources>
+    <!-- 深色窗口主题；跟随系统切换 -->
+    <style name="Theme.Pvz2Tool" parent="android:Theme.Material.NoActionBar" />
+</resources>

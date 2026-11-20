@@ -1,0 +1,4 @@
+<resources>
+    <!-- 浅色窗口主题；真正的配色由 Compose 的 AppTheme 控制 -->
+    <style name="Theme.Pvz2Tool" parent="android:Theme.Material.Light.NoActionBar" />
+</resources>
