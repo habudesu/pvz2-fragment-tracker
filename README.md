@@ -38,4 +38,4 @@ Release 包签名从 `local.properties` 读取 `RELEASE_STORE_FILE`、`RELEASE_S
 ## 反馈
 
 - 邮箱：habudesu@outlook.com
-- GitHub Issues：<https://github.com/habudesu/pvz2-fragment-tracke/issues>
+- GitHub Issues：<https://github.com/habudesu/pvz2-fragment-tracker/issues>

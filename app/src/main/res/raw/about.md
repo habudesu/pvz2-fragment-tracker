@@ -22,4 +22,4 @@
 ## 反馈
 
 - 邮箱：habudesu@outlook.com
-- GitHub：https://github.com/habudesu/pvz2-fragment-tracke/issues
+- GitHub：https://github.com/habudesu/pvz2-fragment-tracker/issues
