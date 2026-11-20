@@ -17,6 +17,9 @@ captures/
 *.jks
 *.keystore
 
+# 内部开发文档，仅本地保留
+合并开发文档.md
+
 # 系统杂项
 .DS_Store
 Thumbs.db
