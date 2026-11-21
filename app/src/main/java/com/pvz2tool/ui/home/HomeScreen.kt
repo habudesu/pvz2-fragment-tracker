@@ -4,6 +4,7 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -99,6 +100,7 @@ fun HomeRoute(
         state = state,
         onAddFragments = viewModel::addFragments,
         onAddSolution = viewModel::addSolution,
+        onSetSolution = viewModel::setSolution,
         onSaveProgress = viewModel::saveProgress,
         onSaveCardInfo = viewModel::saveCardInfo,
         onToggleCollapsed = viewModel::toggleCollapsed,
@@ -119,6 +121,7 @@ fun HomeScreen(
     state: HomeUiState,
     onAddFragments: (Long, Int) -> Unit,
     onAddSolution: (PlantColor, Int) -> Unit,
+    onSetSolution: (PlantColor, Int) -> Unit,
     onSaveProgress: (PlantCardEntity, Int, Int) -> Unit,
     onSaveCardInfo: (PlantCardEntity, String, String?, PlantColor, Boolean, FifthTierStatus, Int) -> Unit,
     onToggleCollapsed: (String) -> Unit,
@@ -141,6 +144,8 @@ fun HomeScreen(
     var editing by remember { mutableStateOf<PlantCardUi?>(null) }
     // 正在编辑卡片基础信息
     var editingInfo by remember { mutableStateOf<PlantCardUi?>(null) }
+    // 正在编辑其他道具的已有数量
+    var editingSolution by remember { mutableStateOf<SolutionSummary?>(null) }
     // 搜索栏是否展开；关键字本身存在 ViewModel 里
     var searchActive by remember { mutableStateOf(state.query.isNotEmpty()) }
     val searchFocus = remember { FocusRequester() }
@@ -368,6 +373,7 @@ fun HomeScreen(
                             SolutionFooter(
                                 solutions = relevantSolutions,
                                 onAddOwned = onAddSolution,
+                                onEditOwned = { editingSolution = it },
                                 modifier = Modifier.animateItem(
                                     fadeInSpec = null,
                                     fadeOutSpec = null,
@@ -406,6 +412,18 @@ fun HomeScreen(
                 onSave = { title, url, color, explorable, status, maxTier ->
                     onSaveCardInfo(card.entity, title, url, color, explorable, status, maxTier)
                     editingInfo = null
+                }
+            )
+        }
+
+        editingSolution?.let { summary ->
+            SolutionCountDialog(
+                color = summary.color,
+                current = summary.owned,
+                onDismiss = { editingSolution = null },
+                onConfirm = { owned ->
+                    onSetSolution(summary.color, owned)
+                    editingSolution = null
                 }
             )
         }
@@ -466,11 +484,12 @@ private fun SearchTitleField(
     )
 }
 
-/** 其他道具汇总内容：已有数量可加减（重启后保留），需求用固定宽度对齐。 */
+/** 其他道具汇总内容：已有数量可加减，点数字可直接输入；需求用固定宽度对齐。 */
 @Composable
 private fun SolutionFooter(
     solutions: List<SolutionSummary>,
     onAddOwned: (PlantColor, Int) -> Unit,
+    onEditOwned: (SolutionSummary) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -505,12 +524,22 @@ private fun SolutionFooter(
                     onClick = { onAddOwned(summary.color, -1) },
                     size = 24.dp
                 )
-                Text(
-                    text = summary.owned.toString(),
-                    style = MaterialTheme.typography.bodyMedium,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.width(32.dp)
-                )
+                // 数字本身可点，打开输入弹窗，避免大数量时逐个点加号
+                Box(
+                    modifier = Modifier
+                        .width(40.dp)
+                        .height(30.dp)
+                        .clickable { onEditOwned(summary) },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = summary.owned.toString(),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
                 CounterButton(
                     text = "+",
                     enabled = true,
@@ -604,6 +633,38 @@ private fun EditProgressDialog(
                     fragmentText.toIntOrNull() ?: entity.currentFragments
                 )
             }) { Text("保存") }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("取消") }
+        }
+    )
+}
+
+/** 其他道具数量输入弹窗：点已有数量打开，直接填数字保存。 */
+@Composable
+private fun SolutionCountDialog(
+    color: PlantColor,
+    current: Int,
+    onDismiss: () -> Unit,
+    onConfirm: (Int) -> Unit
+) {
+    var text by remember(color) { mutableStateOf(current.toString()) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("${color.displayName}色道具") },
+        text = {
+            OutlinedTextField(
+                value = text,
+                onValueChange = { text = it.filter { c -> c.isDigit() } },
+                label = { Text("已有数量") },
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                modifier = Modifier.fillMaxWidth()
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = { onConfirm(text.toIntOrNull() ?: current) }) { Text("保存") }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) { Text("取消") }

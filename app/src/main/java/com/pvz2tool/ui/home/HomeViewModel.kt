@@ -153,6 +153,15 @@ class HomeViewModel(container: AppContainer) : ViewModel() {
         }
     }
 
+    /** 点数字直接设置某颜色道具的已有数量；负值按 0 处理。 */
+    fun setSolution(color: PlantColor, owned: Int) {
+        viewModelScope.launch {
+            solutionMutex.withLock {
+                solutionDao.upsert(SolutionOwnedEntity(color, owned.coerceAtLeast(0)))
+            }
+        }
+    }
+
     /** 手动编辑阶数与碎片（保存时钳到合法范围，不自动升阶）。 */
     fun saveProgress(card: PlantCardEntity, tier: Int, fragments: Int) {
         viewModelScope.launch { cardRepository.updateProgress(card, tier, fragments) }
