@@ -34,8 +34,8 @@ android {
         applicationId = "com.pvz2tool"
         minSdk = 26          // 文档要求
         targetSdk = 35       // 当前稳定版，可按需调整
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = 2
+        versionName = "1.0.1"
     }
 
     signingConfigs {
